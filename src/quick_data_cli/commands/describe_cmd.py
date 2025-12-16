@@ -1,7 +1,14 @@
 import typer
 from pathlib import Path
 import pandas as pd
-from pandas.api.types import infer_dtype, is_object_dtype, is_string_dtype
+from pandas.api.types import (
+    infer_dtype,
+    is_bool_dtype,
+    is_float_dtype,
+    is_integer_dtype,
+    is_object_dtype,
+    is_string_dtype,
+)
 from rich.console import Console
 from rich.table import Table
 from ..utils.loader import load_data
@@ -18,6 +25,13 @@ def _display_dtype(series: pd.Series) -> str:
             inferred = infer_dtype(non_null, skipna=True)
             if inferred in {"string", "unicode", "bytes"}:
                 return "string"
+
+    if is_bool_dtype(series.dtype):
+        return "bool"
+    if is_integer_dtype(series.dtype):
+        return "int"
+    if is_float_dtype(series.dtype):
+        return "float"
     return str(series.dtype)
 
 
