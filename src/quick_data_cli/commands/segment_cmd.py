@@ -40,4 +40,7 @@ def segment(
 
 
 def register(app: typer.Typer):
-    app.command("segment")(segment)
+    app.command(
+        "segment",
+        help="Group data by a categorical column and compute aggregate stats for numerical columns.",
+    )(segment)

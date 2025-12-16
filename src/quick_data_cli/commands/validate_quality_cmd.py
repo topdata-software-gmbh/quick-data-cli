@@ -41,4 +41,7 @@ def validate_quality(file_path: str):
 
 
 def register(app: typer.Typer):
-    app.command("validate-quality")(validate_quality)
+    app.command(
+        "validate-quality",
+        help="Run data health checks (missing values, duplicates, mixed types) and return a quality score.",
+    )(validate_quality)

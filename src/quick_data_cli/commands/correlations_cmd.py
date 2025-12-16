@@ -46,4 +46,7 @@ def correlations(
 
 
 def register(app: typer.Typer):
-    app.command("correlations")(correlations)
+    app.command(
+        "correlations",
+        help="Identify relationships between numerical columns and show strong correlations.",
+    )(correlations)

@@ -37,4 +37,7 @@ def chart(
 
 
 def register(app: typer.Typer):
-    app.command("chart")(chart)
+    app.command(
+        "chart",
+        help="Generate interactive Plotly charts and save them as HTML.",
+    )(chart)

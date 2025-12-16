@@ -41,4 +41,7 @@ def describe(file_path: str):
 
 
 def register(app: typer.Typer):
-    app.command("describe")(describe)
+    app.command(
+        "describe",
+        help="Get an overview of the dataset: shape, column types, missing values, and basic statistics.",
+    )(describe)

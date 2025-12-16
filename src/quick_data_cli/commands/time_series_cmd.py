@@ -44,4 +44,7 @@ def time_series(
 
 
 def register(app: typer.Typer):
-    app.command("time-series")(time_series)
+    app.command(
+        "time-series",
+        help="Analyze trends over time using a date column and a numerical value column.",
+    )(time_series)

@@ -60,4 +60,7 @@ def distributions(file_path: str, column: str = typer.Argument(...)):
 
 
 def register(app: typer.Typer):
-    app.command("distributions")(distributions)
+    app.command(
+        "distributions",
+        help="Analyze a column: show numerical stats or categorical frequency counts.",
+    )(distributions)

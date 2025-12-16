@@ -46,4 +46,7 @@ def detect_outliers_cmd(
 
 
 def register(app: typer.Typer):
-    app.command("detect-outliers")(detect_outliers_cmd)
+    app.command(
+        "detect-outliers",
+        help="Find anomalies in your data using IQR (default) or Z-score.",
+    )(detect_outliers_cmd)

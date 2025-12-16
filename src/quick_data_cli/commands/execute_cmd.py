@@ -73,4 +73,7 @@ except Exception as e:
 
 
 def register(app: typer.Typer):
-    app.command("execute")(execute)
+    app.command(
+        "execute",
+        help="Run a custom Python script against the loaded dataset (available as a pandas DataFrame `df`).",
+    )(execute)
