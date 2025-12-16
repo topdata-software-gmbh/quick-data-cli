@@ -1,0 +1,14 @@
+[project]
+name = "quick-data-cli"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2.3",
+    "plotly>=6.1.2",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=1.0.0",
+    "rich>=14.2.0",
+    "typer[all]>=0.20.0",
+]
