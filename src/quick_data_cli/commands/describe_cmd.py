@@ -1,11 +1,24 @@
 import typer
 from pathlib import Path
 import pandas as pd
+from pandas.api.types import infer_dtype, is_object_dtype, is_string_dtype
 from rich.console import Console
 from rich.table import Table
 from ..utils.loader import load_data
 
 console = Console()
+
+
+def _display_dtype(series: pd.Series) -> str:
+    if is_string_dtype(series.dtype):
+        return "string"
+    if is_object_dtype(series.dtype):
+        non_null = series.dropna()
+        if not non_null.empty:
+            inferred = infer_dtype(non_null, skipna=True)
+            if inferred in {"string", "unicode", "bytes"}:
+                return "string"
+    return str(series.dtype)
 
 
 def describe(file_path: str):
@@ -26,7 +39,7 @@ def describe(file_path: str):
         s = df[col]
         null_pct = s.isna().mean() * 100
         non_null = s.notna().sum()
-        table.add_row(str(col), str(s.dtype), str(non_null), f"{null_pct:.2f}")
+        table.add_row(str(col), _display_dtype(s), str(non_null), f"{null_pct:.2f}")
     console.print(table)
 
     if not df.select_dtypes(include="number").empty:
