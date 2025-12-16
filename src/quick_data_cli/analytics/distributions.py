@@ -1,33 +1,7 @@
 import pandas as pd
 from typing import Dict, Any
 
-from pandas.api.types import (
-    infer_dtype,
-    is_bool_dtype,
-    is_float_dtype,
-    is_integer_dtype,
-    is_object_dtype,
-    is_string_dtype,
-)
-
-
-def _display_dtype(series: pd.Series) -> str:
-    if is_string_dtype(series.dtype):
-        return "string"
-    if is_object_dtype(series.dtype):
-        non_null = series.dropna()
-        if not non_null.empty:
-            inferred = infer_dtype(non_null, skipna=True)
-            if inferred in {"string", "unicode", "bytes"}:
-                return "string"
-
-    if is_bool_dtype(series.dtype):
-        return "bool"
-    if is_integer_dtype(series.dtype):
-        return "int"
-    if is_float_dtype(series.dtype):
-        return "float"
-    return str(series.dtype)
+from ..utils.dtypes import display_dtype
 
 
 def analyze_distributions(df: pd.DataFrame, column_name: str) -> Dict[str, Any]:
@@ -37,7 +11,7 @@ def analyze_distributions(df: pd.DataFrame, column_name: str) -> Dict[str, Any]:
     s = df[column_name]
     result: Dict[str, Any] = {
         "column": column_name,
-        "dtype": _display_dtype(s),
+        "dtype": display_dtype(s),
         "total_values": int(len(s)),
         "unique_values": int(s.nunique()),
         "null_values": int(s.isnull().sum()),
