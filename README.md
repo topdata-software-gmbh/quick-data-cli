@@ -1,7 +1,3 @@
-Here is the updated **README.md** reflecting the new CLI architecture, replacing the old MCP server documentation.
-
-***
-
 # Quick Data CLI
 
 **Quick Data CLI** is a powerful, standalone command-line tool for instant data analysis. It transforms any structured dataset (JSON or CSV) into intelligent insights, visualizations, and quality reports without the need for complex setup or hardcoded schemas.
@@ -30,7 +26,7 @@ This project uses `uv` for dependency management.
 1.  **Clone the repository**:
     ```bash
     git clone <repository-url>
-    cd quick-data-mcp
+    cd quick-data-cli
     ```
 
 2.  **Install dependencies**:
