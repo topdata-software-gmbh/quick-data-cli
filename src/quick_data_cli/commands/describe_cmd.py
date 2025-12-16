@@ -21,6 +21,21 @@ def _display_dtype(series: pd.Series) -> str:
     return str(series.dtype)
 
 
+def _format_number(v) -> str:
+    if pd.isna(v):
+        return "-"
+    try:
+        fv = float(v)
+    except Exception:
+        return str(v)
+
+    if fv.is_integer():
+        return str(int(fv))
+
+    s = f"{fv:.6f}"
+    return s.rstrip("0").rstrip(".")
+
+
 def describe(file_path: str):
     try:
         df = load_data(Path(file_path))
@@ -49,7 +64,7 @@ def describe(file_path: str):
         for c in desc.columns:
             t2.add_column(str(c))
         for idx, row in desc.iterrows():
-            t2.add_row(str(idx), *[f"{v:.4g}" if pd.notna(v) else "-" for v in row.values])
+            t2.add_row(str(idx), *[_format_number(v) for v in row.values])
         console.print(t2)
 
 
