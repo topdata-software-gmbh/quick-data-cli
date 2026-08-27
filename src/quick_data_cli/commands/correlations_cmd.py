@@ -1,30 +1,26 @@
 import typer
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 from rich.console import Console
 from rich.table import Table
 from ..utils.loader import load_data
 from ..analytics.correlations import find_correlations
+from ..utils.file_inputs import prepare_file_inputs
 
 console = Console()
 
 
-def correlations(
-    file_path: str,
-    threshold: float = typer.Option(0.3, "--threshold"),
-    columns: Optional[str] = typer.Option(None, "--columns", help="Comma-separated columns"),
-):
-    try:
-        df = load_data(Path(file_path))
-    except Exception as e:
-        typer.secho(f"Error: {e}", err=True, fg=typer.colors.RED)
-        raise typer.Exit(1)
-
+def _run_correlations_on_file(
+    file_path: Path,
+    threshold: float,
+    columns: Optional[str],
+) -> None:
+    console.rule(f"[bold cyan]Correlations[/bold cyan] :: {file_path}")
+    df = load_data(file_path)
     cols = [c.strip() for c in columns.split(",")] if columns else None
     result = find_correlations(df, columns=cols, threshold=threshold)
     if "error" in result:
-        typer.secho(f"Error: {result['error']}", err=True, fg=typer.colors.RED)
-        raise typer.Exit(1)
+        raise RuntimeError(result["error"])
 
     table = Table(title="Strong Correlations", show_header=True, header_style="bold")
     table.add_column("Column 1")
@@ -43,6 +39,31 @@ def correlations(
         )
 
     console.print(table)
+
+
+def correlations(
+    file_paths: List[Path] = typer.Argument(
+        ...,
+        metavar="FILE_PATHS...",
+        help="One or more CSV/JSON files.",
+    ),
+    threshold: float = typer.Option(0.3, "--threshold"),
+    columns: Optional[str] = typer.Option(None, "--columns", help="Comma-separated columns"),
+):
+    valid_paths = prepare_file_inputs(file_paths, "correlations")
+    had_failure = False
+    for file_path in valid_paths:
+        try:
+            _run_correlations_on_file(file_path, threshold, columns)
+        except Exception as e:
+            had_failure = True
+            typer.secho(
+                f"[correlations] Failed to process {file_path}: {e}",
+                err=True,
+                fg=typer.colors.RED,
+            )
+    if had_failure:
+        raise typer.Exit(1)
 
 
 def register(app: typer.Typer):

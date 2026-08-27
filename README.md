@@ -44,22 +44,35 @@ This project uses `uv` for dependency management.
 
 ## 📖 Command Reference
 
-### 1. `describe`
-Get a high-level overview of your dataset, including shape, column types, missing values, and statistical summaries.
+### Multiple File Inputs
+Every analytics command now accepts **one or more** CSV/JSON file paths. The CLI validates each path, processes them sequentially, and reports per-file errors without interrupting the rest.
 
 ```bash
-uv run python main.py describe data/ecommerce_orders.json
+# glob expansion from your shell
+uv run python main.py describe data/*.csv
+
+# explicit list of paths
+uv run python main.py correlations data/file1.csv data/file2.json --threshold 0.5
+```
+
+If any file is missing or invalid, the CLI skips it with a readable warning and exits with a non-zero status when all files fail.
+
+### 1. `describe`
+Get a high-level overview of your dataset, including shape, column types, missing values, and statistical summaries. Provide a single file or multiple files to batch the results.
+
+```bash
+uv run python main.py describe data/ecommerce_orders.json data/employee_survey.csv
 ```
 
 ### 2. `validate-quality`
-Run a health check on your data to identify missing values, duplicates, and mixed data types. Returns a quality score (0-100).
+Run health checks (missing values, duplicates, mixed data types) for one or more files. Each file yields its own report and quality score (0-100).
 
 ```bash
 uv run python main.py validate-quality data/employee_survey.csv
 ```
 
 ### 3. `correlations`
-Identify relationships between numerical columns.
+Identify relationships between numerical columns. Multiple files will be analyzed independently with separate tables.
 
 *   `--threshold`: Minimum correlation strength to display (default: 0.3).
 *   `--columns`: Specific columns to analyze (optional).
@@ -69,7 +82,7 @@ uv run python main.py correlations data/product_performance.csv --threshold 0.5
 ```
 
 ### 4. `segment`
-Group data by a categorical column and calculate aggregate statistics for numerical columns.
+Group data by a categorical column and calculate aggregate statistics for numerical columns, one file after another.
 
 *   `--column`: The categorical column to group by.
 *   `--top-n`: Number of segments to show (default: 10).
@@ -79,14 +92,14 @@ uv run python main.py segment data/ecommerce_orders.json --column region
 ```
 
 ### 5. `distributions`
-Deep dive into a specific column. Automatically detects if the column is numerical (showing mean, std, quartiles) or categorical (showing frequency counts).
+Deep dive into a specific column across multiple datasets. Automatically detects if the column is numerical (showing mean, std, quartiles) or categorical (showing frequency counts).
 
 ```bash
 uv run python main.py distributions data/employee_survey.csv satisfaction_score
 ```
 
 ### 6. `detect-outliers`
-Find anomalies in your data.
+Find anomalies in your data. Errors from one file do not stop the remaining files from being analyzed.
 
 *   `--method`: Analysis method, either `iqr` (default) or `zscore`.
 
@@ -95,7 +108,7 @@ uv run python main.py detect-outliers data/product_performance.csv --method zsco
 ```
 
 ### 7. `time-series`
-Analyze trends over time. Requires a date column and a value column.
+Analyze trends over time for each file provided. Requires a date column and a value column.
 
 *   `--date-column`: The column containing date/time info.
 *   `--value-column`: The numerical column to analyze.
@@ -106,7 +119,7 @@ uv run python main.py time-series data/ecommerce_orders.json --date-column order
 ```
 
 ### 8. `chart`
-Generate interactive HTML charts (saved to `outputs/charts/`).
+Generate interactive HTML charts (saved to `outputs/charts/`). Supplying multiple files produces a chart per file (output filenames will be suffixed with the source file stem when needed).
 
 *   `--type`: `bar`, `histogram`, `scatter`, `line`, or `box`.
 *   `--x`: Column for X-axis.
@@ -119,7 +132,7 @@ uv run python main.py chart data/ecommerce_orders.json --type bar --x region --y
 ```
 
 ### 9. `execute`
-Run a custom Python script against a loaded dataset. The dataset is injected into your script as a pandas DataFrame named `df`.
+Run a custom Python script against one or more datasets. The dataset is injected into your script as a pandas DataFrame named `df`, and the script runs sequentially for each provided file.
 
 **Example Script (`myscript.py`):**
 ```python
@@ -132,7 +145,7 @@ print(f"High Value Orders: {len(high_value)}")
 
 **Run it:**
 ```bash
-uv run python main.py execute data/ecommerce_orders.json myscript.py
+uv run python main.py execute data/ecommerce_orders.json data/employee_survey.csv myscript.py
 ```
 
 ## 📂 Project Structure

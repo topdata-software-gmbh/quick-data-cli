@@ -1,24 +1,22 @@
 import typer
 from pathlib import Path
+from typing import List
 from rich.console import Console
 from rich.table import Table
 from ..utils.loader import load_data
 from ..analytics.distributions import analyze_distributions
+from ..utils.file_inputs import prepare_file_inputs
 
 console = Console()
 
 
-def distributions(file_path: str, column: str = typer.Argument(...)):
-    try:
-        df = load_data(Path(file_path))
-    except Exception as e:
-        typer.secho(f"Error: {e}", err=True, fg=typer.colors.RED)
-        raise typer.Exit(1)
+def _run_distributions_on_file(file_path: Path, column: str) -> None:
+    console.rule(f"[bold cyan]Distributions[/bold cyan] :: {file_path}")
+    df = load_data(file_path)
 
     result = analyze_distributions(df, column)
     if "error" in result:
-        typer.secho(f"Error: {result['error']}", err=True, fg=typer.colors.RED)
-        raise typer.Exit(1)
+        raise RuntimeError(result["error"])
 
     # Summary table
     summary = Table(title=f"Distribution Summary: {result['column']}")
@@ -57,6 +55,30 @@ def distributions(file_path: str, column: str = typer.Argument(...)):
         for k, v in top.items():
             t.add_row(str(k), str(v))
         console.print(t)
+
+
+def distributions(
+    file_paths: List[Path] = typer.Argument(
+        ...,
+        metavar="FILE_PATHS...",
+        help="One or more CSV/JSON files.",
+    ),
+    column: str = typer.Argument(..., help="Column to analyze."),
+):
+    valid_paths = prepare_file_inputs(file_paths, "distributions")
+    had_failure = False
+    for file_path in valid_paths:
+        try:
+            _run_distributions_on_file(file_path, column)
+        except Exception as e:
+            had_failure = True
+            typer.secho(
+                f"[distributions] Failed to process {file_path}: {e}",
+                err=True,
+                fg=typer.colors.RED,
+            )
+    if had_failure:
+        raise typer.Exit(1)
 
 
 def register(app: typer.Typer):

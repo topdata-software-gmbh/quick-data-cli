@@ -1,15 +1,12 @@
 import typer
 from pathlib import Path
+from typing import List
 import subprocess
 import shutil
+from ..utils.file_inputs import prepare_file_inputs
 
 
-def execute(
-    file_path: str = typer.Argument(..., help="Path to CSV or JSON file"),
-    script_path: str = typer.Argument(..., help="Path to a Python script to run against the data"),
-):
-    # Build wrapper code that loads the data and executes the user script with `df` available
-    wrapper_code = r'''
+WRAPPER_CODE = r'''
 import sys
 import pandas as pd
 import numpy as np
@@ -46,11 +43,12 @@ except Exception as e:
     raise SystemExit(1)
 '''
 
-    cmd = []
+
+def _run_script_against_file(file_path: Path, script_path: Path) -> int:
     if shutil.which("uv"):
-        cmd = ["uv", "run", "python", "-c", wrapper_code, file_path, script_path]
+        cmd = ["uv", "run", "python", "-c", WRAPPER_CODE, str(file_path), str(script_path)]
     else:
-        cmd = ["python", "-c", wrapper_code, file_path, script_path]
+        cmd = ["python", "-c", WRAPPER_CODE, str(file_path), str(script_path)]
 
     try:
         proc = subprocess.run(
@@ -60,16 +58,57 @@ except Exception as e:
             check=False,
             timeout=60,
         )
-    except subprocess.TimeoutExpired:
-        typer.secho("TIMEOUT: Code execution exceeded 60 seconds", err=True, fg=typer.colors.RED)
-        raise typer.Exit(1)
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("TIMEOUT: Code execution exceeded 60 seconds") from exc
 
     if proc.stdout:
         typer.echo(proc.stdout)
     if proc.stderr:
         typer.echo(proc.stderr)
 
-    raise typer.Exit(proc.returncode)
+    if proc.returncode != 0:
+        raise RuntimeError(f"Script exited with code {proc.returncode}")
+
+    return proc.returncode
+
+
+def execute(
+    paths: List[Path] = typer.Argument(
+        ...,
+        metavar="FILE_PATHS... SCRIPT_PATH",
+        help="One or more CSV/JSON files followed by the Python script to run.",
+    ),
+):
+    if len(paths) < 2:
+        raise typer.BadParameter(
+            "Provide at least one data file followed by the script path.",
+            param_hint="FILE_PATHS... SCRIPT_PATH",
+        )
+
+    script_path = paths[-1]
+    data_paths = paths[:-1]
+
+    if not script_path.exists() or script_path.is_dir():
+        raise typer.BadParameter(
+            f"Script file not found or invalid: {script_path}",
+            param_hint="SCRIPT_PATH",
+        )
+
+    valid_paths = prepare_file_inputs(data_paths, "execute")
+    had_failure = False
+    for file_path in valid_paths:
+        typer.secho(f"[execute] Running {script_path} against {file_path}", fg=typer.colors.CYAN)
+        try:
+            _run_script_against_file(file_path, script_path)
+        except Exception as e:
+            had_failure = True
+            typer.secho(
+                f"[execute] Failed for {file_path}: {e}",
+                err=True,
+                fg=typer.colors.RED,
+            )
+    if had_failure:
+        raise typer.Exit(1)
 
 
 def register(app: typer.Typer):
