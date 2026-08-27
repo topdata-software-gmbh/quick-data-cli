@@ -278,22 +278,22 @@ def profile_source(file_paths: List[str]) -> str:
         vals = [str(v) for v in series_sample if v is not None]
         if not vals:
             return "empty"
-    non_empty = [v for v in vals if v != ""]
-    if not non_empty:
-        return "empty"
-    # numeric?
-    numeric = sum(1 for v in non_empty if v.lstrip("-").replace(".", "", 1).isdigit())
-    if numeric >= 0.9 * len(non_empty):
-        return "numeric"
-    # identifier-like: high cardinality, short tokens, alnum (allow _ - .)
-    distinct = len(set(non_empty))
-    avg_len = sum(len(v) for v in non_empty) / len(non_empty)
-    alnum = sum(1 for v in non_empty if v.replace("_", "").replace("-", "").replace(".", "").isalnum())
-    if distinct >= 0.8 * len(non_empty) and alnum >= 0.8 * len(non_empty) and avg_len < 40:
-        return "identifier_or_sku"
-    if distinct >= 0.8 * len(non_empty):
-        return "high_cardinality_text"
-    return "categorical_or_text"
+        non_empty = [v for v in vals if v != ""]
+        if not non_empty:
+            return "empty"
+        # numeric?
+        numeric = sum(1 for v in non_empty if v.lstrip("-").replace(".", "", 1).isdigit())
+        if numeric >= 0.9 * len(non_empty):
+            return "numeric"
+        # identifier-like: high cardinality, short tokens, alnum (allow _ - .)
+        distinct = len(set(non_empty))
+        avg_len = sum(len(v) for v in non_empty) / len(non_empty)
+        alnum = sum(1 for v in non_empty if v.replace("_", "").replace("-", "").replace(".", "").isalnum())
+        if distinct >= 0.8 * len(non_empty) and alnum >= 0.8 * len(non_empty) and avg_len < 40:
+            return "identifier_or_sku"
+        if distinct >= 0.8 * len(non_empty):
+            return "high_cardinality_text"
+        return "categorical_or_text"
 
     results: List[Dict[str, Any]] = []
     for raw in file_paths:
