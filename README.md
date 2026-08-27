@@ -4,7 +4,7 @@
 
 Built with **Typer**, **Rich**, and **Pandas**, it provides a beautiful, color-coded terminal interface for exploring your data.
 
-## 🚀 Features
+## Features
 
 *   **Universal Data Support**: Works instantly with any `.csv` or `.json` file.
 *   **Zero Configuration**: No schema definitions required; types are inferred automatically.
@@ -19,7 +19,7 @@ Built with **Typer**, **Rich**, and **Pandas**, it provides a beautiful, color-c
 *   **Visualization**: Generate interactive Plotly HTML charts.
 *   **Custom Scripting**: Execute safe, custom Python logic against your data using the `execute` command.
 
-## 🛠️ Installation & Setup
+## Installation & Setup
 
 This project uses `uv` for dependency management.
 
@@ -42,7 +42,7 @@ This project uses `uv` for dependency management.
 > **Tip:** You can alias this command in your shell for easier access:
 > `alias quick-data="uv run python main.py"`
 
-## 📖 Command Reference
+## Command Reference
 
 ### Multiple File Inputs
 Every analytics command now accepts **one or more** CSV/JSON file paths. The CLI validates each path, processes them sequentially, and reports per-file errors without interrupting the rest.
@@ -148,7 +148,48 @@ print(f"High Value Orders: {len(high_value)}")
 uv run python main.py execute data/ecommerce_orders.json data/employee_survey.csv myscript.py
 ```
 
-## 📂 Project Structure
+## MCP Server
+
+Quick Data CLI can be exposed to AI agents (such as OpenCode) as an MCP server over stdio transport. Launch it directly with:
+
+```bash
+uv run python main.py mcp
+```
+
+This starts a stdio MCP server that exposes the analytics commands as agent-facing tools.
+
+### Add to local (project) config
+
+Create or edit `opencode.json` in your project root:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "quick-data": {
+      "type": "local",
+      "command": ["uv", "--directory", "/absolute/path/to/quick-data-cli", "run", "python", "main.py", "mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+The `--directory` flag points `uv` at the project so the server works regardless of the agent's current working directory.
+
+### Add to global config
+
+To make the server available in every project, add the same `mcp` block to your global OpenCode config at `~/.config/opencode/opencode.json`.
+
+### Verify
+
+After editing, confirm the server is detected and connected:
+
+```bash
+opencode mcp list
+```
+
+## Project Structure
 
 ```
 quick-data-cli/
@@ -167,7 +208,7 @@ quick-data-cli/
 └── pyproject.toml              # Dependencies and project config
 ```
 
-## 🧪 Testing
+## Testing
 
 The project includes a comprehensive test suite.
 
@@ -179,6 +220,6 @@ uv run pytest
 uv run pytest --cov=src/quick_data_cli
 ```
 
-## 📄 License
+## License
 
 [MIT](LICENSE)
