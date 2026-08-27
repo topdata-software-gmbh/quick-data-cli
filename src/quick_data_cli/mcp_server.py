@@ -28,6 +28,7 @@ from .analytics.distributions import analyze_distributions
 from .analytics.outliers import detect_outliers
 from .analytics.time_series import time_series_analysis
 from .analytics.chart import create_chart
+from .analytics.query import query_files
 
 
 mcp = FastMCP("quick-data")
@@ -252,6 +253,15 @@ def execute(file_paths: List[str], script_path: str) -> str:
             results.append({"file": str(path), "error": f"{type(exc).__name__}: {exc}"})
 
     return _dump(results)
+
+
+@mcp.tool()
+def query(file_paths: List[str], sql: str, max_rows: int = 1000) -> str:
+    """Run arbitrary DuckDB SQL against the file(s). A single file is exposed
+    as view 't'; multiple files as t0, t1, ... Returns JSON with columns/rows
+    (capped at max_rows)."""
+
+    return _dump(query_files(file_paths, sql, max_rows=max_rows))
 
 
 @mcp.tool()

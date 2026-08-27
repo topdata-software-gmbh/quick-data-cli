@@ -148,6 +148,20 @@ print(f"High Value Orders: {len(high_value)}")
 uv run python main.py execute data/ecommerce_orders.json data/employee_survey.csv myscript.py
 ```
 
+### 10. `query`
+Run arbitrary DuckDB SQL against one or more files. A single file is exposed as
+view `t`; multiple files as `t0`, `t1`, ... Output is a Rich table (default) or
+JSON (`--output json`). Useful for ad-hoc analysis the built-in commands don't
+cover.
+
+```bash
+# single file -> view 't'
+uv run python main.py query data/employee_survey.csv -s "SELECT department, round(avg(satisfaction_score),2) AS avg_sat FROM t GROUP BY department ORDER BY avg_sat DESC"
+
+# multiple files -> t0, t1
+uv run python main.py query data/employee_survey.csv data/product_performance.csv -s "SELECT (SELECT count(*) FROM t0) AS survey_rows, (SELECT count(*) FROM t1) AS product_rows"
+```
+
 ## MCP Server
 
 Quick Data CLI can be exposed to AI agents (such as OpenCode) as an MCP server over stdio transport. Launch it directly with:
@@ -173,6 +187,7 @@ The server exposes one tool per analytics command, plus a DuckDB-powered profile
 | `time_series` | Resample/summarize a date × value series. |
 | `chart` | Render a Plotly HTML chart; returns the output file path. |
 | `execute` | Run a custom Python script against each dataset (`df`). |
+| `query` | Run arbitrary DuckDB SQL against the file(s) (`t` / `t0`,`t1`, ...). |
 | `profile_source` | DuckDB profiling of a raw source CSV (types, null %, distinct counts, pattern hints) for DFG playbook authoring. |
 
 **Output contract:** every tool takes `file_paths: list[str]` (plus optional

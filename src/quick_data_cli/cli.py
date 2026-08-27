@@ -17,6 +17,7 @@ from .commands import (
     validate_quality_cmd,
     chart_cmd,
     execute_cmd,
+    query_cmd,
 )
 from . import mcp_server
 
@@ -29,6 +30,7 @@ time_series_cmd.register(app)
 validate_quality_cmd.register(app)
 chart_cmd.register(app)
 execute_cmd.register(app)
+query_cmd.register(app)
 
 
 @app.command(
