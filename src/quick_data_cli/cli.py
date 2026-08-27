@@ -18,6 +18,7 @@ from .commands import (
     chart_cmd,
     execute_cmd,
 )
+from . import mcp_server
 
 describe_cmd.register(app)
 correlations_cmd.register(app)
@@ -28,6 +29,14 @@ time_series_cmd.register(app)
 validate_quality_cmd.register(app)
 chart_cmd.register(app)
 execute_cmd.register(app)
+
+
+@app.command(
+    "mcp",
+    help="Run the MCP server (stdio, FastMCP) exposing analytics to AI agents.",
+)
+def mcp():
+    mcp_server.run()
 
 def main():
     app()

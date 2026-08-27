@@ -158,6 +158,33 @@ uv run python main.py mcp
 
 This starts a stdio MCP server that exposes the analytics commands as agent-facing tools.
 
+### Tools
+
+The server exposes one tool per analytics command, plus a DuckDB-powered profiler:
+
+| Tool | Purpose |
+| --- | --- |
+| `describe` | Shape, column types, missing values, numeric stats. |
+| `validate_quality` | Missing data, duplicates, mixed-type checks, quality score. |
+| `correlations` | Strong correlations (|r| ≥ threshold) between numeric columns. |
+| `segment` | Group by a categorical column and aggregate numeric measures. |
+| `distributions` | Distribution of a single column (numeric stats or category counts). |
+| `detect_outliers` | Outlier counts via `iqr` or `zscore`. |
+| `time_series` | Resample/summarize a date × value series. |
+| `chart` | Render a Plotly HTML chart; returns the output file path. |
+| `execute` | Run a custom Python script against each dataset (`df`). |
+| `profile_source` | DuckDB profiling of a raw source CSV (types, null %, distinct counts, pattern hints) for DFG playbook authoring. |
+
+**Output contract:** every tool takes `file_paths: list[str]` (plus optional
+parameters) and returns a JSON string — a list of per-file results. No human
+text is emitted, so the agent receives exact, token-efficient structured data.
+Errors are returned as structured `{"error": "..."}` entries rather than
+crashing the server.
+
+**Example agent usage:** profile a raw source CSV to decide `sku_definition`
+vs `field_definition` nodes, then QA a DFG output with `validate_quality` /
+`correlations`.
+
 ### Add to local (project) config
 
 Create or edit `opencode.json` in your project root:
