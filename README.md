@@ -168,7 +168,7 @@ Create or edit `opencode.json` in your project root:
   "mcp": {
     "quick-data": {
       "type": "local",
-      "command": ["uv", "--directory", "/absolute/path/to/quick-data-cli", "run", "python", "main.py", "mcp"],
+      "command": ["uv", "--directory", "/topdata/quick-data-cli", "run", "python", "main.py", "mcp"],
       "enabled": true
     }
   }
